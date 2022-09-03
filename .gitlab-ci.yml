@@ -1,0 +1,67 @@
+stages:
+  - "test"
+
+.test-template:
+  stage: test
+  image: python:3.9.6-slim-buster
+  tags:
+    - kubernetes-runner
+    - docker-runner
+  except:
+    - tags
+  before_script:
+    - pip install poetry==1.1.13
+    - poetry config virtualenvs.create false
+    - poetry install
+
+black:
+  extends:
+    - .test-template
+  script:
+    - black --check .
+
+flake8:
+  extends:
+    - .test-template
+  script:
+    - flake8 --count .
+
+mypy:
+  extends:
+    - .test-template
+  script:
+    - mypy .
+
+pytest:
+  extends:
+    - .test-template
+  services:
+    - name: bitnami/mysql:8.0.28
+      alias: database
+    - name: rabbitmq:3.9.16-alpine
+      alias: rmq
+  variables:
+
+    # MySQL variables
+    ENSEMBL-METADATA-API_DB_HOST: database
+    MYSQL_PASSWORD: ensembl-metadata-api
+    MYSQL_USER: ensembl-metadata-api
+    MYSQL_DATABASE: ensembl-metadata-api
+    ALLOW_EMPTY_PASSWORD: yes
+
+    # Rabbitmq variables
+    RABBITMQ_DEFAULT_USER: "guest"
+    RABBITMQ_DEFAULT_PASS: "guest"
+    RABBITMQ_DEFAULT_VHOST: "/"
+    ENSEMBL-METADATA-API_RABBIT_HOST: rmq
+  script:
+    - apt update
+    - apt install -y wait-for-it
+    - wait-for-it -t 180 $ENSEMBL-METADATA-API_DB_HOST:3306
+    - pytest -vv --junitxml=report.xml --cov="ensembl-metadata-api" .
+    - coverage xml
+  artifacts:
+    when: always
+    reports:
+      cobertura: coverage.xml
+      junit: report.xml

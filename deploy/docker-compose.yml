@@ -1,0 +1,75 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+    image: ensembl-metadata-api:${ENSEMBL-METADATA-API_VERSION:-latest}
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      rmq:
+        condition: service_healthy
+    environment:
+      ENSEMBL-METADATA-API_HOST: 0.0.0.0
+      ENSEMBL-METADATA-API_DB_HOST: ensembl-metadata-api-db
+      ENSEMBL-METADATA-API_DB_PORT: 3306
+      ENSEMBL-METADATA-API_DB_USER: ensembl-metadata-api
+      ENSEMBL-METADATA-API_DB_PASS: ensembl-metadata-api
+      ENSEMBL-METADATA-API_DB_BASE: ensembl-metadata-api
+      ENSEMBL-METADATA-API_RABBIT_HOST: ensembl-metadata-api-rmq
+
+  db:
+    image: bitnami/mysql:8.0.28
+    hostname: ensembl-metadata-api-db
+    restart: always
+    environment:
+      MYSQL_ROOT_USER: "ensembl-metadata-api"
+      MYSQL_ROOT_PASSWORD: "ensembl-metadata-api"
+      MYSQL_DATABASE: "ensembl-metadata-api"
+      MYSQL_AUTHENTICATION_PLUGIN: "mysql_native_password"
+    healthcheck:
+      test: mysqladmin ping -h localhost
+      interval: 10s
+      timeout: 5s
+      retries: 40
+    volumes:
+      - ensembl-metadata-api-db-data:/bitnami/mysql/data
+
+  migrator:
+    image: ensembl-metadata-api:${ENSEMBL-METADATA-API_VERSION:-latest}
+    restart: "no"
+    command: alembic upgrade head
+    environment:
+      ENSEMBL-METADATA-API_DB_HOST: ensembl-metadata-api-db
+      ENSEMBL-METADATA-API_DB_PORT: 3306
+      ENSEMBL-METADATA-API_DB_USER: ensembl-metadata-api
+      ENSEMBL-METADATA-API_DB_PASS: ensembl-metadata-api
+      ENSEMBL-METADATA-API_DB_BASE: ensembl-metadata-api
+    depends_on:
+      db:
+        condition: service_healthy
+
+  rmq:
+    image: rabbitmq:3.9.16-alpine
+    hostname: "ensembl-metadata-api-rmq"
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    healthcheck:
+      test: rabbitmq-diagnostics check_running -q
+      interval: 3s
+      timeout: 3s
+      retries: 50
+
+
+
+volumes:
+  ensembl-metadata-api-db-data:
+    name: ensembl-metadata-api-db-data

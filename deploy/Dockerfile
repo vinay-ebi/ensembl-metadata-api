@@ -4,24 +4,16 @@ RUN apt-get update && apt-get install -y \
   gcc \
   && rm -rf /var/lib/apt/lists/*
 
-RUN pip install poetry==1.1.13
-
-# Configuring poetry
-RUN poetry config virtualenvs.create false
-
-# Copying requirements of a project
-COPY pyproject.toml poetry.lock /app/src/
-WORKDIR /app/src
-
-# Installing requirements
-RUN poetry install
-# Removing gcc
-RUN apt-get purge -y \
-  gcc \
-  && rm -rf /var/lib/apt/lists/*
+RUN useradd --create-home appuser
+USER appuser
+WORKDIR /home/appuser
 
 # Copying actuall application
-COPY . /app/src/
-RUN poetry install
+COPY . /home/appuser
 
-CMD ["/usr/local/bin/python", "-m", "ensembl-metadata-api"]
+RUN python -m venv /home/appuser/venv
+ENV PATH="/app/src/venv/bin:/home/appuser/.local/bin:$PATH"
+RUN pip install -r requirements.txt
+RUN pip install .
+
+CMD ["/usr/local/bin/python", "-m", "ensembl.production.metadata_api.app.main"]

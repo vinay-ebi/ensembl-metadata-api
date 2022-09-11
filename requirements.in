@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+yarl
+ujson
+SQLAlchemy
+mypy 
+asyncio
+aiomysql
+aiofiles

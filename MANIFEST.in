@@ -1,0 +1,6 @@
+include LICENSE
+include NOTICE
+include VERSION
+include src/ensembl/production/metadata_api/static/docs/redoc.standalone.js
+include src/ensembl/production/metadata_api/static/docs/swagger-ui-bundle.js
+include src/ensembl/production/metadata_api/static/docs/swagger-ui.css

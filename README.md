@@ -1,23 +1,35 @@
 # ensembl-metadata-api
 
 
-## Poetry
+Create Virtual environment with pyenv
+```bash
 
-This project uses poetry. It's a modern dependency management
-tool.
+pyenv install 3.8.3
 
-To run the project use this set of commands:
+pyenv virtualenv 3.8.3 ensembl_metadata_api
+
+pyenv activate ensembl_metadata_api
+```
+
+To run the project clone and install dependencies:
 
 ```bash
-poetry install
-poetry run python -m ensembl-metadata-api
+
+git clone  https://github.com/vinay-ebi/ensembl-metadata-api
+
+cd ensembl-metadata-api
+
+pip install -r requirements.txt
+
+pip install . 
+
+python -m ensembl.production.metadata_api.app.main
 ```
 
 This will start the server on the configured host.
 
 You can find swagger documentation at `/api/docs`.
 
-You can read more about poetry here: https://python-poetry.org/
 
 ## Docker
 
@@ -36,7 +48,7 @@ docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml --p
 
 This command exposes the web application on port 8000, mounts current directory and enables autoreload.
 
-But you have to rebuild image every time you modify `poetry.lock` or `pyproject.toml` with this command:
+But you have to rebuild image every time you modify requirements.txt with this command:
 
 ```bash
 docker-compose -f deploy/docker-compose.yml --project-directory . build
@@ -45,22 +57,37 @@ docker-compose -f deploy/docker-compose.yml --project-directory . build
 ## Project structure
 
 ```bash
-$ tree "ensembl-metadata-api"
 ensembl-metadata-api
-├── conftest.py  # Fixtures for all tests.
-├── db  # module contains db configurations
-│   ├── dao  # Data Access Objects. Contains different classes to inteact with database.
-│   └── models  # Package contains different models for ORMs.
-├── __main__.py  # Startup script. Starts uvicorn.
-├── services  # Package for different external services such as rabbit or redis etc.
-├── settings.py  # Main configuration settings for project.
-├── static  # Static content.
-├── tests  # Tests for project.
-└── web  # Package contains web server. Handlers, startup config.
-    ├── api  # Package with all handlers.
-    │   └── router.py  # Main router.
-    ├── application.py  # FastAPI application configuration.
-    └── lifetime.py  # Contains actions to perform on startup and shutdown.
+src
+├── ensembl
+│   └── production
+│       └── metadata_api
+│           ├── app
+│           │   ├── api # Package with all handlers.
+│           │   ├── __init__.py
+│           │   ├── main.py #Startup script. Starts uvicorn.
+│           │   └── settings.py # Main configuration settings for project.
+│           ├── database # module contains db configurations
+│           │   ├── db_startupevent_lifetime.py
+│           │   ├── dependencies.py
+│           │   └── utils.py
+│           ├── __init__.py
+│           ├── metadataManager #metadata db ORM modules
+│           │   ├── base.py
+│           │   ├── __init__.py
+│           │   ├── meta.py
+│           │   └── models 
+│           ├── migrations # scripts to initialize/upgrade metadata database
+│           │   ├── env.py
+│           │   ├── __init__.py
+│           │   ├── script.py #migration script 
+│           │   └── versions
+│           └── static # Static content.
+│               └── docs
+└── tests
+    ├── conftest.py # Fixtures for all tests.
+    ├── __init__.py
+    └── test_ensembl-metadata-api.py
 ```
 
 ## Configuration

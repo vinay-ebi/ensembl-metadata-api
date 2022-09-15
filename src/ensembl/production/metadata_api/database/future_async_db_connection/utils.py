@@ -3,7 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import URL, make_url
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
 from sqlalchemy.orm import sessionmaker
-from ensembl-metadata-api.settings import settings
+from ensembl.production.metadata_api.app.settings import settings
 
 
 async def create_database() -> None:

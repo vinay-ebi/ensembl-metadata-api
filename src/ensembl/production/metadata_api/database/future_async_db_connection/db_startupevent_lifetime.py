@@ -2,7 +2,7 @@ from typing import Awaitable, Callable
 import logging
 from fastapi import FastAPI
 
-from ensembl-metadata-api.settings import settings
+from ensembl.production.metadata_api.app.settings import settings
 from asyncio import current_task
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -40,7 +40,7 @@ def register_startup_event(app: FastAPI) -> Callable[[], Awaitable[None]]:  # pr
     Actions to run on application startup.
 
     This function uses fastAPI app to store data
-    inthe state, such as db_engine.
+    in the state, such as db_engine.
 
     :param app: the fastAPI application.
     :return: function that actually performs actions.

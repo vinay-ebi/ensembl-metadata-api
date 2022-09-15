@@ -2,12 +2,10 @@ from typing import Any, Tuple
 
 from sqlalchemy import Table
 from sqlalchemy.orm import as_declarative
-
-from ensembl-metadata-api.database.meta import meta
-
+from ensembl.production.metadata_api.metadataManager.meta import meta
 
 @as_declarative(metadata=meta)
-class Base:
+class Base():
     """
     Base for all models.
 
